@@ -29,7 +29,7 @@ func (file *CameraFile) Save(name string) error {
 	_file := (*C.CameraFile)(unsafe.Pointer(file))
 	_name := C.CString(name)
 	if ret := C.gp_file_save(_file, _name); ret != 0 {
-		return e(ret)
+		return AsPortResult(ret).Error()
 	}
 	return nil
 }

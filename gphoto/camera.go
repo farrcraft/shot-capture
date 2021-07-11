@@ -4,7 +4,7 @@ package gphoto
 // We set -rpath in LDFLAGS so that we don't need to use LD_LIBRARY_PATH at runtime
 
 // #cgo linux CFLAGS: -I/opt/shot-capture/include
-// #cgo linux LDFLAGS: -L/opt/shot-capture/lib -Wl,-rpath -Wl,/opt/shot-capture/lib -lgphoto2
+// #cgo linux LDFLAGS: -L/opt/shot-capture/lib -Wl,-rpath -Wl,/opt/shot-capture/lib -lgphoto2 -lgphoto2_port
 // #include <gphoto2/gphoto2.h>
 // #include <string.h>
 import "C"
@@ -23,7 +23,7 @@ func NewCamera() (*Camera, error) {
 	var _cam *C.Camera
 
 	if ret := C.gp_camera_new(&_cam); ret != 0 {
-		return nil, e(ret)
+		return nil, AsPortResult(ret).Error()
 	}
 
 	return (*Camera)(_cam), nil
@@ -31,7 +31,7 @@ func NewCamera() (*Camera, error) {
 
 func (camera *Camera) Init(ctx *Context) error {
 	if ret := C.gp_camera_init(camera.c(), ctx.c()); ret != 0 {
-		return e(ret)
+		return AsPortResult(ret).Error()
 	}
 
 	return nil
@@ -43,7 +43,7 @@ func (camera *Camera) Capture(captureType CameraCaptureType, ctx *Context) (Came
 
 	_captureType := C.CameraCaptureType(captureType)
 	if ret := C.gp_camera_capture(camera.c(), _captureType, &_path, ctx.c()); ret != 0 {
-		return CameraFilePath{"", ""}, e(ret)
+		return CameraFilePath{"", ""}, AsPortResult(ret).Error()
 	}
 
 	path.Name = C.GoString(&_path.name[0])
@@ -61,14 +61,14 @@ func (camera *Camera) File(folder, name string, filetype CameraFileType, context
 	_context := (*C.GPContext)(unsafe.Pointer(context))
 	_filetype := (C.CameraFileType)(filetype)
 	if ret := C.gp_camera_file_get(_camera, _folder, _name, _filetype, _file, _context); ret != 0 {
-		return nil, e(ret)
+		return nil, AsPortResult(ret).Error()
 	}
 	return (*CameraFile)(unsafe.Pointer(_file)), nil
 }
 
 func (camera *Camera) Free() error {
 	if ret := C.gp_camera_free(camera.c()); ret != 0 {
-		return e(ret)
+		return AsPortResult(ret).Error()
 	}
 	return nil
 }
