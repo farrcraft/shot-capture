@@ -20,7 +20,6 @@ func NewList() (*CameraList, error) {
 	if ret != PORT_RESULT_OK {
 		return nil, AsPortResult(ret).Error()
 	}
-	list.Count = int(ret)
 	return list, nil
 }
 
