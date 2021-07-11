@@ -1,10 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
-	"github.com/sigsegv42/shot-capture/gphoto"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )
@@ -17,42 +15,49 @@ func main() {
 	// setup CLI
 	app := &cli.App{
 		Name:  "shot-capture",
-		Usage: "capture shots from camera",
+		Usage: "capture images from camera",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:    "config",
+				Aliases: []string{"c"},
+				Usage:   "Load configuration from `FILE`",
+			},
+		},
+		Action: runApp,
 	}
 
 	err := app.Run(os.Args)
 	if err != nil {
-		log.Error("Couldn't setup CLI - ", err)
+		log.Error("Couldn't run CLI - ", err)
 		os.Exit(-1)
 	}
+	/*
+		path, err := camera.Capture(gphoto.CAPTURE_IMAGE, context)
+		if err != nil {
+			log.Error("Error capturing image - ", err)
+			os.Exit(-1)
+		}
+		fmt.Println(path.Name)
+	*/
+}
 
-	// initialize camera
-	context := gphoto.NewContext()
-	defer context.Free()
-
-	camera, err := gphoto.NewCamera()
+func runApp(ctx *cli.Context) error {
+	configFileName := ctx.String("config")
+	if configFileName == "" {
+		return cli.Exit("Missing config!", -1)
+	}
+	backend, err := NewBackend(configFileName)
 	if err != nil {
-		log.Error("Couldn't create new camera - ", err)
+		return err
+	}
+	ok := backend.Run()
+	if !ok {
 		os.Exit(-1)
 	}
 
-	err = camera.Init(context)
-	if err != nil {
-		log.Error("Failed to initialize camera - ", err)
+	ok = backend.Shutdown()
+	if !ok {
 		os.Exit(-1)
 	}
-
-	path, err := camera.Capture(gphoto.CAPTURE_IMAGE, context)
-	if err != nil {
-		log.Error("Error capturing image - ", err)
-		os.Exit(-1)
-	}
-	fmt.Println(path.Name)
-
-	err = camera.Free()
-	if err != nil {
-		log.Error("Couldn't free camera - ", err)
-		os.Exit(-1)
-	}
-
+	return nil
 }
