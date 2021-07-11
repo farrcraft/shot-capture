@@ -16,20 +16,25 @@ const (
 	CAPTURE_SOUND = C.GP_CAPTURE_SOUND
 )
 
-type Camera C.Camera
+type Camera struct {
+	Ref     *C.Camera
+	Context *Context
+}
+
 type CameraCaptureType int
 
 func NewCamera() (*Camera, error) {
-	var _cam *C.Camera
+	cam := &Camera{}
 
-	if ret := C.gp_camera_new(&_cam); ret != 0 {
+	if ret := C.gp_camera_new(&cam.Ref); ret != 0 {
 		return nil, AsPortResult(ret).Error()
 	}
 
-	return (*Camera)(_cam), nil
+	return cam, nil
 }
 
 func (camera *Camera) Init(ctx *Context) error {
+	camera.Context = ctx
 	if ret := C.gp_camera_init(camera.c(), ctx.c()); ret != 0 {
 		return AsPortResult(ret).Error()
 	}
@@ -37,12 +42,21 @@ func (camera *Camera) Init(ctx *Context) error {
 	return nil
 }
 
-func (camera *Camera) Capture(captureType CameraCaptureType, ctx *Context) (CameraFilePath, error) {
+func (camera *Camera) Autodetect(list *CameraList) PortResult {
+	ret := C.gp_camera_autodetect(list.c(), camera.Context.c())
+	if ret < 0 {
+		return AsPortResult(ret)
+	}
+	list.Count = int(ret)
+	return PORT_RESULT_OK
+}
+
+func (camera *Camera) Capture(captureType CameraCaptureType) (CameraFilePath, error) {
 	var path CameraFilePath
 	var _path C.CameraFilePath
 
 	_captureType := C.CameraCaptureType(captureType)
-	if ret := C.gp_camera_capture(camera.c(), _captureType, &_path, ctx.c()); ret != 0 {
+	if ret := C.gp_camera_capture(camera.c(), _captureType, &_path, camera.Context.c()); ret != 0 {
 		return CameraFilePath{"", ""}, AsPortResult(ret).Error()
 	}
 
@@ -51,14 +65,14 @@ func (camera *Camera) Capture(captureType CameraCaptureType, ctx *Context) (Came
 	return path, nil
 }
 
-func (camera *Camera) File(folder, name string, filetype CameraFileType, context *Context) (*CameraFile, error) {
+func (camera *Camera) File(folder, name string, filetype CameraFileType) (*CameraFile, error) {
 	var _file *C.CameraFile
 	C.gp_file_new(&_file)
 
 	_camera := (*C.Camera)(unsafe.Pointer(camera))
 	_folder := C.CString(folder)
 	_name := C.CString(name)
-	_context := (*C.GPContext)(unsafe.Pointer(context))
+	_context := (*C.GPContext)(unsafe.Pointer(camera.Context))
 	_filetype := (C.CameraFileType)(filetype)
 	if ret := C.gp_camera_file_get(_camera, _folder, _name, _filetype, _file, _context); ret != 0 {
 		return nil, AsPortResult(ret).Error()
@@ -74,7 +88,7 @@ func (camera *Camera) Free() error {
 }
 
 func (camera *Camera) c() *C.Camera {
-	return (*C.Camera)(camera)
+	return (*C.Camera)(camera.Ref)
 }
 
 func (path *CameraFilePath) c() *C.CameraFilePath {
