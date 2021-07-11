@@ -7,15 +7,21 @@ package gphoto
 // #include <string.h>
 import "C"
 
-type CameraList C.CameraList
+type CameraList struct {
+	Ref   *C.CameraList
+	Count int
+}
 
 func NewList() (*CameraList, error) {
-	var _list *C.CameraList
-	ret := C.gp_list_new(&_list)
+	list := &CameraList{
+		Count: 0,
+	}
+	ret := C.gp_list_new(&list.Ref)
 	if ret != PORT_RESULT_OK {
 		return nil, AsPortResult(ret).Error()
 	}
-	return (*CameraList)(_list), nil
+	list.Count = int(ret)
+	return list, nil
 }
 
 func (list *CameraList) Reset() {
@@ -27,7 +33,7 @@ func (list *CameraList) Free() {
 }
 
 func (list *CameraList) c() *C.CameraList {
-	return (*C.CameraList)(list)
+	return (*C.CameraList)(list.Ref)
 }
 
 func (list *CameraList) Name(index int) string {
