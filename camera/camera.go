@@ -33,11 +33,15 @@ func (camera *Camera) Init() error {
 }
 
 func (camera *Camera) Free() error {
-	camera.Context.Free()
+	if camera.Context != nil {
+		camera.Context.Free()
+	}
 
-	err := camera.Ref.Free()
-	if err != nil {
-		return err
+	if camera.Ref != nil {
+		err := camera.Ref.Free()
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
