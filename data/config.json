@@ -1,0 +1,5 @@
+{
+    "log_level": "DEBUG",
+    "log_path": "capture.log"
+
+}
