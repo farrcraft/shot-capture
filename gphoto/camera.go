@@ -23,6 +23,7 @@ type Camera struct {
 
 type CameraCaptureType int
 
+// Create a new camera instance
 func NewCamera() (*Camera, error) {
 	cam := &Camera{}
 
@@ -33,16 +34,19 @@ func NewCamera() (*Camera, error) {
 	return cam, nil
 }
 
+// Initialize a camera
 func (camera *Camera) Init(ctx *Context) error {
 	camera.Context = ctx
-	if ret := C.gp_camera_init(camera.c(), ctx.c()); ret != 0 {
+	if ret := C.gp_camera_init(camera.c(), ctx.c()); ret != PORT_RESULT_OK {
 		return AsPortResult(ret).Error()
 	}
 
 	return nil
 }
 
+// Autodetect all connected cameras
 func (camera *Camera) Autodetect(list *CameraList) PortResult {
+	list.Reset()
 	ret := C.gp_camera_autodetect(list.c(), camera.Context.c())
 	if ret < 0 {
 		return AsPortResult(ret)
@@ -51,12 +55,30 @@ func (camera *Camera) Autodetect(list *CameraList) PortResult {
 	return PORT_RESULT_OK
 }
 
+// Set the abilities of the camera
+// This should be called before initializing the camera, otherwise it will be autodetected
+// This tells the library which model and driver to use for the camera
+func (camera *Camera) SetAbilities(abilities *CameraAbilities) error {
+	if ret := C.gp_camera_set_abilities(camera.c(), abilities.Ref); ret != PORT_RESULT_OK {
+		return AsPortResult(ret).Error()
+	}
+	return nil
+}
+
+// Set the port info for the camera
+func (camera *Camera) SetPortInfo(info *PortInfo) error {
+	if ret := C.gp_camera_set_port_info(camera.c(), info.Ref); ret != PORT_RESULT_OK {
+		return AsPortResult(ret).Error()
+	}
+	return nil
+}
+
 func (camera *Camera) Capture(captureType CameraCaptureType) (CameraFilePath, error) {
 	var path CameraFilePath
 	var _path C.CameraFilePath
 
 	_captureType := C.CameraCaptureType(captureType)
-	if ret := C.gp_camera_capture(camera.c(), _captureType, &_path, camera.Context.c()); ret != 0 {
+	if ret := C.gp_camera_capture(camera.c(), _captureType, &_path, camera.Context.c()); ret != PORT_RESULT_OK {
 		return CameraFilePath{"", ""}, AsPortResult(ret).Error()
 	}
 
@@ -74,23 +96,26 @@ func (camera *Camera) File(folder, name string, filetype CameraFileType) (*Camer
 	_name := C.CString(name)
 	_context := (*C.GPContext)(unsafe.Pointer(camera.Context))
 	_filetype := (C.CameraFileType)(filetype)
-	if ret := C.gp_camera_file_get(_camera, _folder, _name, _filetype, _file, _context); ret != 0 {
+	if ret := C.gp_camera_file_get(_camera, _folder, _name, _filetype, _file, _context); ret != PORT_RESULT_OK {
 		return nil, AsPortResult(ret).Error()
 	}
 	return (*CameraFile)(unsafe.Pointer(_file)), nil
 }
 
+// Free camera resources
 func (camera *Camera) Free() error {
-	if ret := C.gp_camera_free(camera.c()); ret != 0 {
+	if ret := C.gp_camera_free(camera.c()); ret != PORT_RESULT_OK {
 		return AsPortResult(ret).Error()
 	}
 	return nil
 }
 
+// c camera pointer
 func (camera *Camera) c() *C.Camera {
 	return (*C.Camera)(camera.Ref)
 }
 
+// c camera file path
 func (path *CameraFilePath) c() *C.CameraFilePath {
 	return (*C.CameraFilePath)(unsafe.Pointer(path))
 }

@@ -35,14 +35,17 @@ const (
 
 type PortResult C.int
 
+// Cast a C int to our custom type
 func AsPortResult(ret C.int) PortResult {
 	return PortResult(ret)
 }
 
+// Cast a result to a string represtantion
 func (result PortResult) String() string {
 	return C.GoString(C.gp_port_result_as_string(C.int(result)))
 }
 
+// Cast a result to an error type
 func (result PortResult) Error() error {
 	return errors.New(C.GoString(C.gp_result_as_string(C.int(result))))
 }
