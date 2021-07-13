@@ -35,6 +35,15 @@ func (list *CameraList) c() *C.CameraList {
 	return (*C.CameraList)(list.Ref)
 }
 
+func (list *CameraList) GetCount() error {
+	ret := C.gp_list_count(list.Ref)
+	if ret < PORT_RESULT_OK {
+		return AsPortResult(ret).Error()
+	}
+	list.Count = int(ret)
+	return nil
+}
+
 func (list *CameraList) Name(index int) string {
 	var name *C.char
 	C.gp_list_get_name(list.c(), C.int(index), &name)

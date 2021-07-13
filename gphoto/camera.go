@@ -73,6 +73,15 @@ func (camera *Camera) SetPortInfo(info *PortInfo) error {
 	return nil
 }
 
+// Get camera configuration
+func (camera *Camera) GetConfig() (*CameraWidget, error) {
+	config := &CameraWidget{}
+	if ret := C.gp_camera_get_config(camera.Ref, &config.Ref, camera.Context.c()); ret != PORT_RESULT_OK {
+		return nil, AsPortResult(ret).Error()
+	}
+	return config, nil
+}
+
 func (camera *Camera) Capture(captureType CameraCaptureType) (CameraFilePath, error) {
 	var path CameraFilePath
 	var _path C.CameraFilePath
