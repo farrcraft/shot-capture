@@ -12,7 +12,7 @@ LIBGPHOTO2_VERSION_REVISION=27
 
 LIBGPHOTO2_VERSION=$LIBGPHOTO2_VERSION_MAJOR.$LIBGPHOTO2_VERSION_MINOR.$LIBGPHOTO2_VERSION_REVISION
 
-sudo apt-get install -y autoconf automake gcc pkg-config libtool gettext make
+sudo apt-get install -y autoconf automake gcc pkg-config libtool gettext make libusb-1.0-0-dev libxml2-dev libjpeg-dev libexif-dev libcurl4-openssl-dev
 
 sudo mkdir -p $INSTALL_PATH
 
