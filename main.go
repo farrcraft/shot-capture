@@ -50,14 +50,18 @@ func runApp(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	ok := backend.Run()
-	if !ok {
-		os.Exit(-1)
+	exitCode := 1
+	if ok := backend.Run(); !ok {
+		exitCode = -1
 	}
 
-	ok = backend.Shutdown()
-	if !ok {
-		os.Exit(-1)
+	if ok := backend.Shutdown(); !ok {
+		exitCode = -1
 	}
+
+	if exitCode != 1 {
+		os.Exit(exitCode)
+	}
+
 	return nil
 }
