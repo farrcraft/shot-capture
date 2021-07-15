@@ -16,12 +16,22 @@ type CameraAbilities struct {
 	Ref C.CameraAbilities
 }
 
-func NewAbilitiesList() (*CameraAbilitiesList, error) {
-	list := &CameraAbilitiesList{}
+func NewAbilitiesList(ctx *Context) (*CameraAbilitiesList, error) {
+	list := &CameraAbilitiesList{
+		Context: ctx,
+	}
 	if ret := C.gp_abilities_list_new(&list.Ref); ret != PORT_RESULT_OK {
 		return nil, AsPortResult(ret).Error()
 	}
 	return list, nil
+}
+
+// Free resources for an abilities list
+func (list *CameraAbilitiesList) Free() error {
+	if ret := C.gp_abilities_list_free(list.Ref); ret != PORT_RESULT_OK {
+		return AsPortResult(ret).Error()
+	}
+	return nil
 }
 
 func (list *CameraAbilitiesList) Load() error {
