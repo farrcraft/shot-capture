@@ -5,38 +5,33 @@ import (
 )
 
 type Camera struct {
-	Context *gphoto.Context
-	Ref     *gphoto.Camera
+	Ref *gphoto.Camera
 }
 
-func NewCamera() *Camera {
+func NewCamera() (*Camera, error) {
 	camera := &Camera{}
-	return camera
-}
-
-func (camera *Camera) Init() error {
-	// initialize camera
-	camera.Context = gphoto.NewContext()
-
 	var err error
 	camera.Ref, err = gphoto.NewCamera()
 	if err != nil {
-		return err
+		return nil, err
 	}
+	return camera, nil
+}
 
-	err = camera.Ref.Init(camera.Context)
-	if err != nil {
-		return err
-	}
+/*
+func (camera *Camera) Autodetect() error {
+
+}
+*/
+
+// Retrieve all of the information about ports and connected cameras
+func (camera *Camera) SystemStats() error {
+	// get port info
 
 	return nil
 }
 
 func (camera *Camera) Free() error {
-	if camera.Context != nil {
-		camera.Context.Free()
-	}
-
 	if camera.Ref != nil {
 		err := camera.Ref.Free()
 		if err != nil {
