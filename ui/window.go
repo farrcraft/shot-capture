@@ -24,7 +24,7 @@ func (window *Window) Init() error {
 	window.Ref.SetTitle("shot-capture")
 	window.Ref.Connect("destroy", func() {
 		gtk.MainQuit()
-	}
+	})
 	return nil
 }
 
