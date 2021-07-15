@@ -45,14 +45,14 @@ func (camera *Camera) Init(ctx *Context) error {
 }
 
 // Autodetect all connected cameras
-func (camera *Camera) Autodetect(list *CameraList) PortResult {
+func (camera *Camera) Autodetect(list *CameraList) error {
 	list.Reset()
 	ret := C.gp_camera_autodetect(list.c(), camera.Context.c())
-	if ret < 0 {
-		return AsPortResult(ret)
+	if ret < PORT_RESULT_OK {
+		return AsPortResult(ret).Error()
 	}
 	list.Count = int(ret)
-	return PORT_RESULT_OK
+	return nil
 }
 
 // Set the abilities of the camera
