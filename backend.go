@@ -108,7 +108,7 @@ func (backend *Backend) Run() bool {
 
 // Log all of the detected port names
 func (backend *Backend) LogPorts() bool {
-	backend.Logger.Info("Found ports - ", backend.CameraService.Ports.Count)
+	backend.Logger.Info("Found ports - ", backend.CameraService.Ports.Size)
 
 	for listIndex := 0; listIndex < backend.CameraService.Ports.Size; listIndex++ {
 		info, err := backend.CameraService.Ports.GetInfo(listIndex)
@@ -130,12 +130,12 @@ func (backend *Backend) LogPorts() bool {
 func (backend *Backend) Shutdown() bool {
 	var err error
 	if backend.Camera != nil {
-	err = backend.Camera.Free()
-	if err != nil {
-		backend.Logger.Error("Error cleaning up camera - ", err)
-		return false
+		err = backend.Camera.Free()
+		if err != nil {
+			backend.Logger.Error("Error cleaning up camera - ", err)
+			return false
+		}
 	}
-}
 	if backend.CameraService != nil {
 		err = backend.CameraService.Free()
 		if err != nil {
