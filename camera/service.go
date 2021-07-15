@@ -15,6 +15,7 @@ func NewCameraService() *CameraService {
 	return service
 }
 
+// Initialize camera service
 func (service *CameraService) Init() error {
 	var err error
 	service.Abilities, err = gphoto.NewAbilitiesList(service.Context)
@@ -42,6 +43,7 @@ func (service *CameraService) Init() error {
 	return nil
 }
 
+// Free camera service resources
 func (service *CameraService) Free() error {
 	if service.Context != nil {
 		service.Context.Free()
@@ -62,6 +64,7 @@ func (service *CameraService) Free() error {
 	return nil
 }
 
+// Initialize a camera
 func (service *CameraService) InitializeCamera(camera *Camera) error {
 	err := camera.Ref.Init(service.Context)
 	if err != nil {
@@ -71,6 +74,7 @@ func (service *CameraService) InitializeCamera(camera *Camera) error {
 	return nil
 }
 
+// Open a camera model on a port
 func (service *CameraService) Open(model string, port string) (*Camera, error) {
 	camera, err := NewCamera()
 	if err != nil {

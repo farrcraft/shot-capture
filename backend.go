@@ -126,11 +126,21 @@ func (backend *Backend) LogPorts() bool {
 	return true
 }
 
+// Shutdown backend
 func (backend *Backend) Shutdown() bool {
-	err := backend.Camera.Free()
+	var err error
+	if backend.Camera != nil {
+	err = backend.Camera.Free()
 	if err != nil {
 		backend.Logger.Error("Error cleaning up camera - ", err)
 		return false
+	}
+}
+	if backend.CameraService != nil {
+		err = backend.CameraService.Free()
+		if err != nil {
+			backend.Logger.Error("Error freeing camera service - ", err)
+		}
 	}
 	return true
 }
