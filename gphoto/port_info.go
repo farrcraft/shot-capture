@@ -19,12 +19,13 @@ const (
 )
 
 type PortInfoList struct {
-	Ref   *C.GPPortInfoList
-	Ports int
+	Ref  *C.GPPortInfoList
+	Size int
 }
 
 type PortInfo struct {
-	Ref C.GPPortInfo
+	Ref  C.GPPortInfo
+	Name string
 }
 
 func NewPortInfoList() (*PortInfoList, error) {
@@ -49,7 +50,7 @@ func (list *PortInfoList) Count() error {
 	if count < PORT_RESULT_OK {
 		return AsPortResult(count).Error()
 	}
-	list.Ports = int(count)
+	list.Size = int(count)
 	return nil
 }
 
@@ -76,5 +77,15 @@ func (list *PortInfoList) Free() error {
 	if ret := C.gp_port_info_list_free(list.Ref); ret != PORT_RESULT_OK {
 		return AsPortResult(ret).Error()
 	}
+	return nil
+}
+
+// Get the name of the port info
+func (info *PortInfo) GetName() error {
+	var name *C.char
+	if ret := C.gp_port_info_get_name(info.Ref, &name); ret != PORT_RESULT_OK {
+		return AsPortResult(ret).Error()
+	}
+	info.Name = C.GoString(name)
 	return nil
 }

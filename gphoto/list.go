@@ -44,14 +44,18 @@ func (list *CameraList) GetCount() error {
 	return nil
 }
 
-func (list *CameraList) Name(index int) string {
+func (list *CameraList) Name(index int) (string, error) {
 	var name *C.char
-	C.gp_list_get_name(list.c(), C.int(index), &name)
-	return C.GoString(name)
+	if ret := C.gp_list_get_name(list.c(), C.int(index), &name); ret != PORT_RESULT_OK {
+		return "", AsPortResult(ret).Error()
+	}
+	return C.GoString(name), nil
 }
 
-func (list *CameraList) Value(index int) string {
+func (list *CameraList) Value(index int) (string, error) {
 	var value *C.char
-	C.gp_list_get_name(list.c(), C.int(index), &value)
-	return C.GoString(value)
+	if ret := C.gp_list_get_value(list.c(), C.int(index), &value); ret != PORT_RESULT_OK {
+		return "", AsPortResult(ret).Error()
+	}
+	return C.GoString(value), nil
 }
