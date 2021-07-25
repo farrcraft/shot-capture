@@ -9,16 +9,27 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type BackendOptions struct {
+	Autodetect          bool
+	ListPorts           bool
+	DisplayCameraConfig bool
+}
 type Backend struct {
 	Logger        *logrus.Logger
 	Camera        *camera.Camera
 	Config        *core.Config
 	CameraService *camera.CameraService
+	Options       *BackendOptions
 }
 
 func NewBackend(configFileName string) (*Backend, error) {
 	backend := &Backend{
 		Logger: logrus.New(),
+		Options: &BackendOptions{
+			Autodetect:          false,
+			ListPorts:           false,
+			DisplayCameraConfig: false,
+		},
 	}
 
 	// load config
@@ -43,6 +54,13 @@ func NewBackend(configFileName string) (*Backend, error) {
 	}
 	backend.Logger.Out = file
 
+	backend.CameraService = camera.NewCameraService()
+	err = backend.CameraService.Init()
+	if err != nil {
+		backend.Logger.Error("Error initializing camera service - ", err)
+		return backend, err
+	}
+
 	// create camera
 	backend.Camera, err = camera.NewCamera()
 	if err != nil {
@@ -56,17 +74,34 @@ func NewBackend(configFileName string) (*Backend, error) {
 func (backend *Backend) Run() bool {
 	backend.Logger.Info("Starting backend...")
 
-	backend.CameraService = camera.NewCameraService()
-	err := backend.CameraService.Init()
-	if err != nil {
-		backend.Logger.Error("Error initializing camera service - ", err)
-		return false
+	if backend.Options.ListPorts {
+		if ok := backend.LogPorts(); !ok {
+			return false
+		}
 	}
 
-	if ok := backend.LogPorts(); !ok {
-		return false
+	if backend.Options.Autodetect {
+		if ok := backend.Autodetect(); !ok {
+			return false
+		}
 	}
+	/*
+		err := backend.Camera.Init()
+		if err != nil {
+			backend.Logger.Error("Error initializing camera - ", err)
+			return false
+		}
+	*/
 
+	return true
+}
+
+func (backend *Backend) runUI() bool {
+	return true
+}
+
+// Autodetect available cameras
+func (backend *Backend) Autodetect() bool {
 	list, err := gphoto.NewList()
 	if err != nil {
 		backend.Logger.Error("Error creating camera list - ", err)
@@ -91,17 +126,9 @@ func (backend *Backend) Run() bool {
 			backend.Logger.Error("Error getting list item value - ", err)
 			return false
 		}
-		backend.Logger.Info("Item", name, value)
+		backend.Logger.Info("Item name - ", name, " - value - ", value)
 	}
 	list.Free()
-
-	/*
-		err := backend.Camera.Init()
-		if err != nil {
-			backend.Logger.Error("Error initializing camera - ", err)
-			return false
-		}
-	*/
 
 	return true
 }

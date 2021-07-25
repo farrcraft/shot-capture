@@ -22,6 +22,26 @@ func main() {
 				Aliases: []string{"c"},
 				Usage:   "Load configuration from `FILE`",
 			},
+			&cli.BoolFlag{
+				Name:  "ui",
+				Usage: "Run in GUI mode",
+			},
+			&cli.BoolFlag{
+				Name:  "list-ports",
+				Usage: "Display available ports",
+			},
+			&cli.BoolFlag{
+				Name:  "autodetect",
+				Usage: "Autodetect available cameras",
+			},
+			&cli.StringFlag{
+				Name:  "camera",
+				Usage: "Select `CAMERA`",
+			},
+			&cli.BoolFlag{
+				Name:  "dump-camera-config",
+				Usage: "Print camera configuration",
+			},
 		},
 		Action: runApp,
 	}
@@ -51,8 +71,19 @@ func runApp(ctx *cli.Context) error {
 		return err
 	}
 	exitCode := 1
-	if ok := backend.Run(); !ok {
-		exitCode = -1
+	if ctx.Bool("ui") {
+		if ok := backend.runUI(); !ok {
+			exitCode = -1
+		}
+	} else {
+		// set backend options
+		backend.Options.Autodetect = ctx.Bool("autodetect")
+		backend.Options.ListPorts = ctx.Bool("list-ports")
+		backend.Options.DisplayCameraConfig = ctx.Bool("dump-camera-config")
+
+		if ok := backend.Run(); !ok {
+			exitCode = -1
+		}
 	}
 
 	if ok := backend.Shutdown(); !ok {
