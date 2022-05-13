@@ -84,6 +84,18 @@ func (backend *Backend) Run() bool {
 		if ok := backend.Autodetect(); !ok {
 			return false
 		}
+		// initialize camera - this will select the first autodetected camera in the list
+	} else {
+		// If a specific camera has been requested then we need to:
+		// set port name on camera
+		// set abilities on camera
+		// init camera
+	}
+
+	if backend.Options.DisplayCameraConfig {
+		if ok := backend.ShowCameraConfig(); !ok {
+			return false
+		}
 	}
 	/*
 		err := backend.Camera.Init()
@@ -97,6 +109,15 @@ func (backend *Backend) Run() bool {
 }
 
 func (backend *Backend) runUI() bool {
+	return true
+}
+
+func (backend *Backend) ShowCameraConfig() bool {
+	config, err := backend.Camera.Ref.GetConfig()
+	if err != nil {
+		backend.Logger.Error("Error getting camera config - ", err)
+		return false
+	}
 	return true
 }
 
